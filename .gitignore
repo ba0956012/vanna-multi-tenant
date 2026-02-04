@@ -1,0 +1,47 @@
+# Environment files with secrets
+config/.env
+config/.env.ecs
+!config/.env.example
+!config/.env.ecs.example
+
+# Task definitions with secrets
+deploy/ecs/task-definition-manager.json
+deploy/ecs/task-definition-agent.json
+deploy/ecs/push-agent.sh
+deploy/ecs/push-manager.sh
+!deploy/ecs/*.example.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+
+# ChromaDB data
+agent_data/
+chroma_db*/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Docker
+.docker/
+
+# Temporary files
+*.tmp
+*.temp

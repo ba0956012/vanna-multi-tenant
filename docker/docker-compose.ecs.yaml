@@ -1,0 +1,52 @@
+# Multi Vanna - ECS 本地測試版本
+# 模擬 ECS 環境，Manager 和 Agent 分開運行
+# 使用方式: cd multi-vanna/docker && docker-compose -f docker-compose.ecs.yaml up -d
+
+version: '3.8'
+
+services:
+  manager:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.manager
+    ports:
+      - "8100:8100"
+    volumes:
+      - ../agent_data:/app/agent_data
+    env_file:
+      - ../config/.env.ecs
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8100/api/agents"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Agent 服務在 ECS 上是動態建立的
+  # 這裡只是用於本地測試
+  agent:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.agent
+    ports:
+      - "8101:8101"
+    volumes:
+      - ../agent_data:/app/agent_data
+    env_file:
+      - ../config/.env.ecs
+    environment:
+      - PYTHONUNBUFFERED=1
+      - AGENT_ID=test_agent
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8101/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  agent_data:

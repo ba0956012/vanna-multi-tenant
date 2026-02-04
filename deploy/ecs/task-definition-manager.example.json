@@ -1,0 +1,110 @@
+{
+  "family": "vanna-manager",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "taskRoleArn": "arn:aws:iam::YOUR_ACCOUNT_ID:role/VannaECSTaskRole",
+  "executionRoleArn": "arn:aws:iam::YOUR_ACCOUNT_ID:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "vanna-manager",
+      "image": "YOUR_ACCOUNT_ID.dkr.ecr.ap-northeast-1.amazonaws.com/vanna-manager:latest",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8100,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "AWS_DEFAULT_REGION",
+          "value": "ap-northeast-1"
+        },
+        {
+          "name": "DYNAMODB_TABLE_NAME",
+          "value": "vanna-agents"
+        },
+        {
+          "name": "ECS_CLUSTER_NAME",
+          "value": "vanna-cluster"
+        },
+        {
+          "name": "ECS_TASK_DEFINITION_AGENT",
+          "value": "vanna-agent"
+        },
+        {
+          "name": "SUBNET_IDS",
+          "value": "subnet-xxx,subnet-yyy"
+        },
+        {
+          "name": "SECURITY_GROUP_IDS",
+          "value": "sg-xxx"
+        },
+        {
+          "name": "BASE_DOMAIN",
+          "value": "localhost:8100"
+        },
+        {
+          "name": "USE_HTTPS",
+          "value": "false"
+        },
+        {
+          "name": "AZURE_OPENAI_DEPLOYMENT_NAME",
+          "value": "gpt-4"
+        },
+        {
+          "name": "AZURE_OPENAI_API_KEY",
+          "value": "YOUR_AZURE_API_KEY"
+        },
+        {
+          "name": "AZURE_OPENAI_API_VERSION",
+          "value": "2025-01-01-preview"
+        },
+        {
+          "name": "AZURE_OPENAI_ENDPOINT",
+          "value": "https://your-endpoint.openai.azure.com/"
+        }
+      ],
+      "mountPoints": [
+        {
+          "sourceVolume": "agent-data-efs",
+          "containerPath": "/app/agent_data",
+          "readOnly": false
+        }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/vanna-manager",
+          "awslogs-region": "ap-northeast-1",
+          "awslogs-stream-prefix": "manager"
+        }
+      },
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "curl -f http://localhost:8100/api/agents || exit 1"
+        ],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 60
+      }
+    }
+  ],
+  "volumes": [
+    {
+      "name": "agent-data-efs",
+      "efsVolumeConfiguration": {
+        "fileSystemId": "fs-YOUR_EFS_ID",
+        "rootDirectory": "/",
+        "transitEncryption": "ENABLED",
+        "authorizationConfig": {
+          "iam": "DISABLED"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+# Multi Vanna - ECS Manager 服務
+# 管理 Agent 生命週期、ECS 操作、管理介面
+
+FROM python:3.13-slim
+
+WORKDIR /app
+
+# 安裝系統依賴
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    gcc \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# 複製 requirements.txt
+COPY requirements.txt .
+
+# 安裝 Python 依賴
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 複製程式碼
+COPY src/main_manager_ecs.py .
+COPY src/templates.py .
+COPY src/templates_ecs.py .
+COPY src/custom_tools.py .
+COPY src/auto_generate_fewshot_pg.py .
+COPY static/ ./static/
+
+# 建立 agent_data 目錄 (EFS 會掛載到這裡)
+RUN mkdir -p /app/agent_data
+
+# 暴露端口
+EXPOSE 8100
+
+# 啟動 Manager
+CMD ["python", "main_manager_ecs.py"]

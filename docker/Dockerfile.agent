@@ -1,0 +1,33 @@
+# Multi Vanna - ECS Agent 服務
+# 提供 Vanna 聊天 API、SQL 執行
+
+FROM python:3.13-slim
+
+WORKDIR /app
+
+# 安裝系統依賴
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    gcc \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# 複製 requirements.txt
+COPY requirements.txt .
+
+# 安裝 Python 依賴
+RUN pip install --no-cache-dir -r requirements.txt
+
+# 複製程式碼
+COPY src/main_agent_ecs.py .
+COPY src/custom_tools.py .
+COPY src/db/ ./db/
+
+# 建立 agent_data 目錄 (EFS 會掛載到這裡)
+RUN mkdir -p /app/agent_data
+
+# 暴露端口
+EXPOSE 8101
+
+# 啟動 Agent
+CMD ["python", "main_agent_ecs.py"]

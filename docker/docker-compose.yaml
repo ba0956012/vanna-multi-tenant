@@ -1,0 +1,34 @@
+# Multi Vanna - 單一 Docker 版本
+# 使用方式: cd multi-vanna/docker && docker-compose up -d
+
+version: '3.8'
+
+services:
+  vanna:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8100:8100"    # Manager
+      - "8101:8101"    # Agent 1
+      - "8102:8102"    # Agent 2
+      - "8103:8103"    # Agent 3
+      - "8104:8104"    # Agent 4
+      - "8105:8105"    # Agent 5
+    volumes:
+      - ../agent_data:/app/agent_data
+      - ../config/agents_config.json:/app/agents_config.json
+    env_file:
+      - ../config/.env
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8100/api/agents"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  agent_data:
